@@ -135,3 +135,63 @@ router.get('/me', async (req, res) => {
 });
 
 module.exports = router;
+// ===== TEMPORARY ADMIN SETUP ROUTE =====
+router.post('/setup-admin', async (req, res) => {
+  try {
+    const { email, password, secret } = req.body;
+
+    if (secret !== 'setup-prohub-2026') {
+      return res.status(403).json({ error: 'Invalid secret' });
+    }
+
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Email and password required' });
+    }
+
+    // Check if admin already exists
+    const usersSnapshot = await db.ref('users').once('value');
+    let adminExists = false;
+    usersSnapshot.forEach(child => {
+      const user = child.val();
+      if (user.email === email && user.role === 'admin') {
+        adminExists = true;
+      }
+    });
+
+    if (adminExists) {
+      return res.status(400).json({ error: 'Admin already exists' });
+    }
+
+    // Create user in Firebase Auth
+    let userRecord;
+    try {
+      userRecord = await admin.auth().getUserByEmail(email);
+    } catch {
+      userRecord = await admin.auth().createUser({ email, password });
+    }
+
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Set admin role
+    await db.ref(`users/${userRecord.uid}`).update({
+      email,
+      passwordHash: hashedPassword,
+      role: 'admin',
+      balance: 999999,
+      createdAt: admin.database.ServerValue.TIMESTAMP
+    });
+
+    res.json({
+      success: true,
+      message: 'Admin created!',
+      uid: userRecord.uid,
+      email
+    });
+  } catch (error) {
+    console.error('Setup admin error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+module.exports = router;
