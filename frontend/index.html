@@ -1,0 +1,1 @@
+window._domain={"checkApiDomain":false,"checkApk":true,"VITE_SAAS_API_URL":"","VITE_SAAS_JSON_URL":"","VITE_BAST_URL":"","VITE_API_URL":"","pwaDomain":""};
