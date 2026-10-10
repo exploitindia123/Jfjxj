@@ -1,0 +1,1 @@
+!function(t,r,a){if(0>(r=location.search).indexOf(t)){a=function(){location.search=r+(r?"&":"?")+t};try{Function('return import("data:text/javascript,export const meta=import.meta")')().catch(a)}catch(c){a()}}}("oldbrowser=1");
